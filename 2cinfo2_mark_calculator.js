@@ -16,7 +16,8 @@ function extractModuleData() {
         "Java scripts coté serveur": 3,
         "Outil collaboratif GIT": 1,
         "Switched Network": 2,
-        "Techniques d'estimation pour l'ingénieur": 3
+        "Techniques d'estimation pour l'ingénieur": 3,
+        "Théorie des langages": 3
     };
 
     if (notesTable) {
