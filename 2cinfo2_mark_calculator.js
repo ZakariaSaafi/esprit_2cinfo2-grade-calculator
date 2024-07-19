@@ -17,7 +17,9 @@ function extractModuleData() {
         "Outil collaboratif GIT": 1,
         "Switched Network": 2,
         "Techniques d'estimation pour l'ingénieur": 3,
-        "Théorie des langages": 3
+        "Théorie des langages": 3,
+        "Projet Web avancé": 5,
+        "Certification CCNA": 1
     };
 
     if (notesTable) {
@@ -70,6 +72,8 @@ function displayResults() {
         return !(module.noteExam === 0 && module.noteRattrapage === 0);
     });
 
+    console.log("Modules valides:", validModules);
+
     // Calcul de la moyenne pour chaque module
     const moduleAverages = validModules.map(module => {
         const noteCC = module.noteCC;
@@ -78,38 +82,60 @@ function displayResults() {
         const noteRattrapage = module.noteRattrapage;
 
         // Calcul des notes selon les nouvelles règles
-        const weightedNoteCC = (noteCC && noteTP && noteExam) ? noteCC * 0.2 :
-                               (noteCC && noteExam && !noteTP) ? noteCC * 0.4 : 0;
-        const weightedNoteTP = (noteTP && noteCC && noteExam) ? noteTP * 0.2 :
-                               (noteTP && !noteCC && noteExam) ? noteTP * 0.4 : 0;
-        const weightedNoteExam = (noteCC && noteTP) ? noteExam * 0.6 :
-                                 ((noteCC && !noteTP) || (!noteCC && noteTP)) ? noteExam * 0.8 :
-                                 noteExam * 0.1;
+        const weightedNoteCC = (noteCC && noteTP && (noteExam || noteRattrapage)) ? noteCC * 0.2 :
+                               (noteCC && (noteExam || noteRattrapage) && !noteTP) ? noteCC * 0.4 : 0;
+        const weightedNoteTP = (noteTP && noteCC && (noteExam || noteRattrapage)) ? noteTP * 0.2 :
+                               (noteTP && !(noteCC) && (noteExam || noteRattrapage)) ? noteTP * 0.4 : 0;
+        
+        let weightedNoteExam;
+        if (noteExam !== 0 && noteExam != null) {
+            weightedNoteExam = (noteCC && noteTP) ? noteExam * 0.6 :
+                               ((noteCC && !noteTP) || (!noteCC && noteTP)) ? noteExam * 0.8 :
+                               noteExam * 1;
+        } else {   
+            weightedNoteExam = (noteCC && noteTP) ? noteRattrapage * 0.6 :
+                               ((noteCC && !noteTP) || (!noteCC && noteTP)) ? noteRattrapage * 0.8 :
+                               noteRattrapage * 1;
+        }
+
+        console.log(`Module: ${module.designation}`);
+        console.log(`Weighted Note CC: ${weightedNoteCC}`);
+        console.log(`Weighted Note TP: ${weightedNoteTP}`);
+        console.log(`Weighted Note Exam: ${weightedNoteExam}`);
 
         // Remplacement par la note de rattrapage si l'examen est à 0
-        const finalNoteExam = noteExam === 0 ? noteRattrapage : weightedNoteExam;
+        const finalNoteExam = weightedNoteExam;
+        console.log(`Final Note Exam (with Rattrapage if Exam is 0): ${finalNoteExam}`);
 
-        const average = (weightedNoteCC + weightedNoteTP + finalNoteExam);
+        // Calcul de la moyenne
+        const average = (weightedNoteCC + weightedNoteTP + weightedNoteExam) * (CR_M[module.designation] || 1);
+
+        console.log(`Calculated Average: ${average}`);
 
         return {
             designation: module.designation,
             average: average.toFixed(2),
             cr_m: CR_M[module.designation] || 1,
-            averageTimesCR_M: (average * (CR_M[module.designation] || 1)).toFixed(2)
+            averageTimesCR_M: (average).toFixed(2)
         };
     });
 
+    console.log("Module Averages:", moduleAverages);
+
     // Calcul du total des coefficients CR-M
-    const totalCR_M = Object.values(CR_M).reduce((sum, coef) => sum + coef, 0);
+    const totalCR_M = validModules.reduce((sum, module) => sum + (CR_M[module.designation] || 1), 0);
+    console.log(`Total des CR-M: ${totalCR_M}`);
 
     // Calcul de la somme des Moyenne * CR-M
     const sumOfAveragesTimesCR_M = moduleAverages.reduce((sum, module) => sum + parseFloat(module.averageTimesCR_M), 0);
+    console.log(`Somme des Moyenne * CR-M: ${sumOfAveragesTimesCR_M}`);
 
     // Calcul de la moyenne pondérée globale
     const weightedAverage = (sumOfAveragesTimesCR_M / totalCR_M).toFixed(2);
+    console.log(`Moyenne pondérée globale: ${weightedAverage}`);
 
-    // Effacer la console
-    console.clear();
+   // Effacer la console
+    console.clear();   
 
     // Afficher le tableau des notes des modules
     console.table(moduleNotes.map(module => ({
@@ -130,8 +156,8 @@ function displayResults() {
     console.table(moduleAverages.map(module => ({
         'Nom Module': module.designation,
         'Moyenne': module.average,
-        'Moyenne * CR-M': module.averageTimesCR_M,
-        'CR-M': module.cr_m
+        'CR-M': module.cr_m,
+        'Moyenne * CR-M': module.averageTimesCR_M
     })));
 
     // Afficher le total des CR-M et la somme des Moyenne * CR-M
