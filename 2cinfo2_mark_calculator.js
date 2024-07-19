@@ -155,7 +155,7 @@ function displayResults() {
     // Afficher le tableau des moyennes calculées
     console.table(moduleAverages.map(module => ({
         'Nom Module': module.designation,
-        'Moyenne': module.average,
+        'Moyenne': module.average / module.cr_m,
         'CR-M': module.cr_m,
         'Moyenne * CR-M': module.averageTimesCR_M
     })));
