@@ -19,7 +19,8 @@ function extractModuleData() {
         "Techniques d'estimation pour l'ingénieur": 3,
         "Théorie des langages": 3,
         "Projet Web avancé": 5,
-        "Certification CCNA": 1
+        "Certification CCNA": 1,
+        "IPNET Routing": 2
     };
 
     if (notesTable) {
